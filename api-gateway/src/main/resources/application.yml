@@ -1,0 +1,199 @@
+# Server Configuration
+server:
+  port: 8080
+  address: 0.0.0.0
+  # Uncomment below for HTTPS (if needed)
+  # port: 8445
+  # ssl:
+  #   enabled: true
+  #   key-store: file:/C:/Users/RMS/SSL/hub/keystore.p12
+  #   key-store-password: changeit
+  #   key-store-type: PKCS12
+  #   key-alias: tomcat
+
+# Application Info
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      # Define all routes explicitly (no Java config needed)
+      routes:
+        # === WebSocket Routes (MUST COME FIRST) ===
+        - id: chatforum-websocket
+          uri: lb:ws://chat-forum  # ✅ Use ws:// protocol for WebSocket
+          predicates:
+            - Path=/ws/**
+          metadata:
+            response-timeout: 60000  # 60 seconds timeout for WS
+            connect-timeout: 10000   # 10 seconds connection timeout
+
+
+        # === Product Service Routes ===
+        - id: product-service-gages
+          uri: lb://product-service
+          predicates:
+            - Path=/api/gages/**
+
+        - id: product-service-gage-issues
+          uri: lb://product-service
+          predicates:
+            - Path=/api/gage-issues/**
+
+        - id: product-service-gage-types
+          uri: lb://product-service
+          predicates:
+            - Path=/api/gage-types/**
+
+        - id: product-service-gage-sub-types
+          uri: lb://product-service
+          predicates:
+            - Path=/api/gage-sub-types/**
+
+        - id: product-service-calibration-manager
+          uri: lb://product-service
+          predicates:
+            - Path=/api/calibration-manager/**
+
+
+        - id: product-service-inhouse-calibration-machines
+          uri: lb://product-service
+          predicates:
+            - Path=/api/inhouse-calibration-machines/**
+
+        - id: product-service-manufacturers
+          uri: lb://product-service
+          predicates:
+            - Path=/api/manufacturers/**
+
+        - id: product-service-suppliers
+          uri: lb://product-service
+          predicates:
+            - Path=/api/suppliers/**
+
+        - id: product-service-usage
+          uri: lb://product-service
+          predicates:
+            - Path=/api/jobs/**
+
+        - id: product-service-mail
+          uri: lb://product-service
+          predicates:
+            - Path=/api/mail/**
+
+        - id: product-service-reallocates
+          uri: lb://product-service
+          predicates:
+            - Path=/api/reallocates/**
+
+
+        - id: product-service-service-providers
+          uri: lb://product-service
+          predicates:
+            - Path=/api/service-providers/**
+
+        - id: product-service-upload
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/upload
+
+        - id: product-service-legacy
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/**
+
+
+        - id: chat-forum-chat
+          uri: lb://chat-forum
+          predicates:
+            - Path=/api/forum/**
+
+        # === Chat Forum SFU & WebSocket Routes ===
+        - id: chat-forum-sfu
+          uri: lb://chat-forum
+          predicates:
+            - Path=/api/sfu/**
+
+        - id: chat-forum-websocket-app
+          uri: lb://chat-forum
+          predicates:
+            - Path=/app/**
+
+        - id: chat-forum-websocket-topic
+          uri: lb://chat-forum
+          predicates:
+            - Path=/topic/**
+
+
+          #=== Calendar Service ===
+        - id: calendar-service
+          uri: lb://calendar-service
+          predicates:
+            - Path=/api/calendar/**
+
+        # === Secure Product API (User/Auth/Role Management) ===
+        - id: spa-departments
+          uri: lb://secure-product-api
+          predicates:
+            - Path=/api/departments/**
+
+        - id: spa-functions
+          uri: lb://secure-product-api
+          predicates:
+            - Path=/api/functions/**
+
+        - id: spa-operations
+          uri: lb://secure-product-api
+          predicates:
+            - Path=/api/operations/**
+
+        - id: spa-roles
+          uri: lb://secure-product-api
+          predicates:
+            - Path=/api/roles/**
+
+        - id: spa-users
+          uri: lb://secure-product-api
+          predicates:
+            - Path=/api/users/**
+
+        - id: spa-auth
+          uri: lb://secure-product-api
+          predicates:
+            - Path=/api/auth/**
+
+      # Global filters
+      default-filters:
+        - RemoveRequestHeader=Cookie
+
+  # Increase max in-memory size for file uploads
+  codec:
+    max-in-memory-size: 100MB
+
+# Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+# Custom JWT Secret (used by your auth logic)
+app:
+  jwtSecret: a-string-secret-at-least-256-bits-long
+
+# Logging (for debugging)
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: DEBUG
