@@ -30,6 +30,9 @@ public interface GageService {
     List<GageResponse> getGagesByLocation(Gage.Location location);
     List<GageResponse> getGagesByCriticality(Gage.Criticality criticality);
 
+    // Find gages mapped to an inhouse calibration machine
+    List<GageResponse> getGagesByInhouseCalibrationMachine(Long inhouseCalibrationMachineId);
+
     List<GageResponse> getGagesByTypeName(String gageTypeName);
 
     // Validation

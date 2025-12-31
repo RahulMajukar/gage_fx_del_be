@@ -41,4 +41,7 @@ public interface GageRepository extends JpaRepository<Gage, Long> {
     long countByManufacturerId(Long manufacturerId);
 
     List<Gage> findByManufacturerId(Long manufacturerId);
+
+    // Find gages mapped to an inhouse calibration machine
+    List<Gage> findByInhouseCalibrationMachineId(Long inhouseCalibrationMachineId);
 }

@@ -565,6 +565,13 @@ public class GageServiceImpl implements GageService {
     }
 
     @Override
+    public List<GageResponse> getGagesByInhouseCalibrationMachine(Long inhouseCalibrationMachineId) {
+        return gageRepository.findByInhouseCalibrationMachineId(inhouseCalibrationMachineId).stream()
+                .map(this::mapToGageResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void updateAllGagesRemainingDays() {
         System.out.println("🔄 Starting daily update of remaining days for all gages...");
         List<Gage> allGages = gageRepository.findAll();

@@ -593,6 +593,16 @@ public class GageController {
         return ResponseEntity.ok(gages);
     }
 
+    @GetMapping("/by-machine/{machineId}")
+    public ResponseEntity<List<GageResponse>> getGagesByInhouseCalibrationMachine(@PathVariable Long machineId) {
+        try {
+            List<GageResponse> gages = gageService.getGagesByInhouseCalibrationMachine(machineId);
+            return ResponseEntity.ok(gages);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     // =============== VALIDATION ===============
     @GetMapping("/validate/serial-number")
     public ResponseEntity<Boolean> isSerialNumberUnique(@RequestParam String serialNumber) {
