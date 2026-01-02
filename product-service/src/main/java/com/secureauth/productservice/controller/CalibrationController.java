@@ -2,12 +2,17 @@ package com.secureauth.productservice.controller;
 
 import com.secureauth.productservice.dto.*;
 import com.secureauth.productservice.entity.CalibrationHistory;
+import com.secureauth.productservice.entity.CalibrationLabTechHistory;
 import com.secureauth.productservice.entity.CalibrationMedia;
 import com.secureauth.productservice.entity.CalibrationSchedule;
 import com.secureauth.productservice.entity.Gage;
+import com.secureauth.productservice.entity.InhouseCalibrationMachine;
 import com.secureauth.productservice.exception.ResourceNotFoundException;
 import com.secureauth.productservice.repository.CalibrationHistoryRepository;
+import com.secureauth.productservice.repository.CalibrationLabTechHistoryRepository;
 import com.secureauth.productservice.repository.CalibrationScheduleRepository;
+import com.secureauth.productservice.repository.GageRepository;
+import com.secureauth.productservice.repository.InhouseCalibrationMachineRepository;
 import com.secureauth.productservice.service.CalibrationHistoryService;
 import com.secureauth.productservice.service.CalibrationService;
 import com.secureauth.productservice.service.GageService;
@@ -37,6 +42,15 @@ public class CalibrationController {
 
     @Autowired
     private CalibrationScheduleRepository calibrationScheduleRepository;
+
+    @Autowired
+    private CalibrationLabTechHistoryRepository historyRepository;
+
+    @Autowired
+    private GageRepository gageRepository;
+
+    @Autowired
+    private InhouseCalibrationMachineRepository machineRepository;
 
     @Autowired
     private GageService gageService;
@@ -143,8 +157,8 @@ public class CalibrationController {
                 userEmail = "system@company.com";
             }
 
-            ScheduleCalibrationResponse response =
-                    calibrationService.scheduleCalibration(gageId, request, userId, userEmail);
+            ScheduleCalibrationResponse response = calibrationService.scheduleCalibration(gageId, request, userId,
+                    userEmail);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -313,6 +327,126 @@ public class CalibrationController {
         }
     }
 
+    // CREATE
+    // @PostMapping("/lab-calibration-history")
+    // public ResponseEntity<CalibrationLabTechHistory> create(
+    // @RequestBody CalibrationLabTechHistory request) {
+
+    // Gage gage = gageRepository.findById(request.getGage().getId())
+    // .orElseThrow(() -> new RuntimeException("Gage not found"));
+
+    // request.setGage(gage);
+
+    // if (request.getCalibrationMachine() != null &&
+    // request.getCalibrationMachine().getId() != null) {
+
+    // InhouseCalibrationMachine machine =
+    // machineRepository.findById(request.getCalibrationMachine().getId())
+    // .orElseThrow(() -> new RuntimeException("Machine not found"));
+
+    // request.setCalibrationMachine(machine);
+    // }
+
+    // return ResponseEntity.ok(historyRepository.save(request));
+    // }
+
+    @PostMapping("/lab-calibration-history")
+    public ResponseEntity<ApiResponse> create(
+            @RequestBody CalibrationLabTechHistory request) {
+
+        Gage gage = gageRepository.findById(request.getGage().getId())
+                .orElseThrow(() -> new RuntimeException("Gage not found"));
+        request.setGage(gage);
+
+        if (request.getCalibrationMachine() != null &&
+                request.getCalibrationMachine().getId() != null) {
+
+            InhouseCalibrationMachine machine = machineRepository.findById(request.getCalibrationMachine().getId())
+                    .orElseThrow(() -> new RuntimeException("Machine not found"));
+            request.setCalibrationMachine(machine);
+        }
+
+        CalibrationLabTechHistory saved = historyRepository.save(request);
+
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        "SUCCESS",
+                        "Calibration history created successfully",
+                        toDto(saved)));
+    }
+
+    // GET BY ID
+    // @GetMapping("/lab-calibration-history/{id}")
+    // public ResponseEntity<CalibrationLabTechHistory> getById(@PathVariable Long
+    // id) {
+    // return ResponseEntity.ok(
+    // historyRepository.findById(id)
+    // .orElseThrow(() -> new RuntimeException("History not found")));
+    // }
+
+    @GetMapping("/lab-calibration-history/{id}")
+    public ResponseEntity<ApiResponse> getById(@PathVariable Long id) {
+
+        CalibrationLabTechHistory history = historyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("History not found"));
+
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        "SUCCESS",
+                        "Calibration history fetched successfully",
+                        toDto(history)));
+    }
+
+    // GET BY GAGE
+    // @GetMapping("/lab-calibration-history/gage/{gageId}")
+    // public ResponseEntity<List<CalibrationLabTechHistory>> getByGage(
+    // @PathVariable Long gageId) {
+    // return ResponseEntity.ok(historyRepository.findByGage_Id(gageId));
+    // }
+
+    @GetMapping("/lab-calibration-history/gage/{gageId}")
+    public ResponseEntity<ApiResponse> getByGage(@PathVariable Long gageId) {
+
+        List<CalibrationLabTechHistoryResponseDto> data = historyRepository.findByGage_Id(gageId)
+                .stream()
+                .map(this::toDto)
+                .toList();
+
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        "SUCCESS",
+                        "Calibration history list fetched",
+                        data));
+    }
+
+    // GET ALL
+    @GetMapping("/lab-calibration-history")
+    public ResponseEntity<ApiResponse> getAll() {
+
+        List<CalibrationLabTechHistoryResponseDto> data = historyRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
+
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        "SUCCESS",
+                        "All calibration history fetched",
+                        data));
+    }
+
+    // DELETE
+    @DeleteMapping("/lab-calibration-history/{id}")
+    public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
+
+        historyRepository.deleteById(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        "SUCCESS",
+                        "Calibration history deleted successfully"));
+    }
+
     private int getTotalMediaCount(InwardRequest request) {
         int count = 0;
         if (request.getDocuments() != null)
@@ -352,5 +486,40 @@ public class CalibrationController {
             return data;
         }
     }
-}
 
+    private CalibrationLabTechHistoryResponseDto toDto(CalibrationLabTechHistory entity) {
+
+        return CalibrationLabTechHistoryResponseDto.builder()
+                .id(entity.getId())
+
+                // Gage
+                .gageId(entity.getGage().getId())
+
+                // Calibration details
+                .technician(entity.getTechnician())
+                .calibrationDate(entity.getCalibrationDate())
+                .nextCalibrationDate(entity.getNextCalibrationDate())
+                .result(entity.getResult())
+                .remarks(entity.getRemarks())
+                .calibratedBy(entity.getCalibratedBy())
+                .certificateNumber(entity.getCertificateNumber())
+                .startedAt(entity.getStartedAt())
+                .completedAt(entity.getCompletedAt())
+                .calibrationDuration(entity.getCalibrationDuration())
+
+                // Machine (nullable)
+                .machineId(
+                        entity.getCalibrationMachine() != null
+                                ? entity.getCalibrationMachine().getId()
+                                : null)
+                .machineName(
+                        entity.getCalibrationMachine() != null
+                                ? entity.getCalibrationMachine().getMachineName()
+                                : null)
+
+                // Audit
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+}
