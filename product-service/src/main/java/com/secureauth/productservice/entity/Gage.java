@@ -232,7 +232,8 @@ public class Gage {
         INACTIVE,
         SCHEDULED,
         OUT_OF_STORE,
-        OUT_FOR_CALIBRATION
+        OUT_FOR_CALIBRATION,
+        IN_USE
     }
 
     // toString method excluding large data fields for better logging
